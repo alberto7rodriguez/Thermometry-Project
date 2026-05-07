@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.linalg import expm
 from scipy.linalg import eig, inv
+from scipy.special import comb
 
 J_values = [0.7112, 0.496, 0.3769, 0.3019, 0.2506, 0.2135, 0.1856, 0.1638, 0.1464]
 
@@ -31,7 +32,7 @@ def transition_matrix(N, beta):
     return M
 
 # Parameters
-N = 4
+N = 5
 J = J_values[N-2]
 beta = 1
 t = 20.0  # time at which we evaluate the solution
@@ -40,7 +41,8 @@ for n in range(N+1):
     print(f"E_{n} = {U(N,n)}")
 
 # Initial condition: start in state 0 (e.g., all probability in p_0)
-p0 = np.full(N+1, 1/(N+1))
+p0_notNorm = np.array([comb(N, n) for n in range(N+1)])
+p0 /= np.sum(p0_notNorm)
 
 # Compute matrix exponential
 M = transition_matrix(N, beta)

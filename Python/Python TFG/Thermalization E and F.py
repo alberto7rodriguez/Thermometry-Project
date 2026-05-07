@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 h = 0.0008
-N = 7
+N = 5
 
 
 def ph_0_star(t):

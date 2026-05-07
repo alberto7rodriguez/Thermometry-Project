@@ -9,6 +9,9 @@ b_values = [0.711, 0.797, 0.894, 1.007, 1.133, 1.267, 1.410, 1.560, 1.714, 1.872
 J_values = [0.7112, 0.4961, 0.3769, 0.3018, 0.2506, 0.2135, 0.1856, 0.1638, 0.1464, 0.1321, 0.1203, 0.1103, 0.1018, 0.0945]
 
 # --- 2. Constructores de Matrices ---
+def f_glauber(delta_E, beta):
+    return 1.0 / (1.0 + np.exp(np.clip(beta * delta_E, -700, 700)))
+
 def build_star_model_matrix(N, a_list, b_list, beta=1.0, gamma=1.0):
     a = a_list[N - 2]
     b = b_list[N - 2]
@@ -20,43 +23,27 @@ def build_star_model_matrix(N, a_list, b_list, beta=1.0, gamma=1.0):
         deg = comb(N - 1, k, exact=True)
         degeneracies[k] = deg
         degeneracies[k + N] = deg
-        energies[k] = -a                                 
+        energies[k] = -a                                
         energies[k + N] = a + 2 * b * (2 * k - N + 1)    
         
-    def f(delta_E):
-        return 1.0 / (1.0 + np.exp(np.clip(beta * delta_E, -700, 700)))
-        
     M = np.zeros((2 * N, 2 * N))
-    
     for k in range(N):
-        down_idx = k
-        up_idx = k + N
+        down_idx, up_idx = k, k + N
         
-        # Central Spin Flips
         delta_E_up = energies[up_idx] - energies[down_idx]
-        M[up_idx, down_idx] = gamma * f(delta_E_up)     
-        M[down_idx, up_idx] = gamma * f(-delta_E_up)    
+        M[up_idx, down_idx] = gamma * f_glauber(delta_E_up, beta)     
+        M[down_idx, up_idx] = gamma * f_glauber(-delta_E_up, beta)    
         
-        # Satellite Flips in DOWN manifold
         if k < N - 1:
-            delta_E_k_plus = energies[down_idx + 1] - energies[down_idx]
-            M[down_idx + 1, down_idx] = gamma * (N - 1 - k) * f(delta_E_k_plus)
+            M[down_idx + 1, down_idx] = gamma * (N - 1 - k) * f_glauber(energies[down_idx + 1] - energies[down_idx], beta)
+            M[up_idx + 1, up_idx] = gamma * (N - 1 - k) * f_glauber(energies[up_idx + 1] - energies[up_idx], beta)
         if k > 0:
-            delta_E_k_minus = energies[down_idx - 1] - energies[down_idx]
-            M[down_idx - 1, down_idx] = gamma * k * f(delta_E_k_minus)
-
-        # Satellite Flips in UP manifold
-        if k < N - 1:
-            delta_E_k_plus = energies[up_idx + 1] - energies[up_idx]
-            M[up_idx + 1, up_idx] = gamma * (N - 1 - k) * f(delta_E_k_plus)
-        if k > 0:
-            delta_E_k_minus = energies[up_idx - 1] - energies[up_idx]
-            M[up_idx - 1, up_idx] = gamma * k * f(delta_E_k_minus)
+            M[down_idx - 1, down_idx] = gamma * k * f_glauber(energies[down_idx - 1] - energies[down_idx], beta)
+            M[up_idx - 1, up_idx] = gamma * k * f_glauber(energies[up_idx - 1] - energies[up_idx], beta)
 
     np.fill_diagonal(M, 0)
     np.fill_diagonal(M, -np.sum(M, axis=0))
     return M, energies, degeneracies
-
 
 def build_ata_matrix(N, J_list, beta=1.0, gamma=1.0):
     J = J_list[N - 2]
@@ -67,18 +54,32 @@ def build_ata_matrix(N, J_list, beta=1.0, gamma=1.0):
         degeneracies[n] = comb(N, n, exact=True)
         energies[n] = J * (-(N * (N + 1)) / 2.0 + 2 * (n + 1) * (N - n))
         
-    def f(delta_E):
-        return 1.0 / (1.0 + np.exp(np.clip(beta * delta_E, -700, 700)))
-        
     M = np.zeros((N + 1, N + 1))
-    
     for n in range(N + 1):
         if n < N:
-            delta_E_plus = energies[n + 1] - energies[n]
-            M[n + 1, n] = gamma * (N - n) * f(delta_E_plus)
+            M[n + 1, n] = gamma * (N - n) * f_glauber(energies[n + 1] - energies[n], beta)
         if n > 0:
-            delta_E_minus = energies[n - 1] - energies[n]
-            M[n - 1, n] = gamma * n * f(delta_E_minus)
+            M[n - 1, n] = gamma * n * f_glauber(energies[n - 1] - energies[n], beta)
+
+    np.fill_diagonal(M, 0)
+    np.fill_diagonal(M, -np.sum(M, axis=0))
+    return M, energies, degeneracies
+
+def build_free_matrix(N, B, beta=1.0, gamma=1.0):
+    energies = np.zeros(N + 1)
+    degeneracies = np.zeros(N + 1)
+    
+    for n in range(N + 1):
+        degeneracies[n] = comb(N, n, exact=True)
+        # Energía: B * (espines_up - espines_down) = B * (n - (N - n))
+        energies[n] = B * (2 * n - N)
+        
+    M = np.zeros((N + 1, N + 1))
+    for n in range(N + 1):
+        if n < N:
+            M[n + 1, n] = gamma * (N - n) * f_glauber(energies[n + 1] - energies[n], beta)
+        if n > 0:
+            M[n - 1, n] = gamma * n * f_glauber(energies[n - 1] - energies[n], beta)
 
     np.fill_diagonal(M, 0)
     np.fill_diagonal(M, -np.sum(M, axis=0))
@@ -104,13 +105,25 @@ def calculate_equilibrium_QFI(energies, degeneracies, beta=1.0, delta_beta=0.001
 target_N_values = list(range(3, 16))
 beta = 1.0
 
+# B_opt para espines libres es la constante analítica ~ 1.19968
+B_opt_free = 1.19968 
+
 chi_ata_list = []
 chi_star_list = []
+chi_free_list = []
 
-print(f"{'N':<5} | {'Chi (All-To-All)':<20} | {'Chi (Star Model)':<20}")
-print("-" * 50)
+print(f"{'N':<5} | {'Chi (Free)':<15} | {'Chi (All-To-All)':<18} | {'Chi (Star Model)':<18}")
+print("-" * 75)
 
 for N in target_N_values:
+    # --- Evaluación Free Spins ---
+    M_free, E_free, deg_free = build_free_matrix(N, B_opt_free, beta=beta)
+    evals_free = np.sort(np.real(la.eigvals(M_free)))[::-1]
+    tau_free = -1.0 / evals_free[1]
+    qfi_free = calculate_equilibrium_QFI(E_free, deg_free, beta=beta)
+    chi_free = qfi_free / tau_free
+    chi_free_list.append(chi_free)
+
     # --- Evaluación All-To-All ---
     M_ata, E_ata, deg_ata = build_ata_matrix(N, J_values, beta=beta)
     evals_ata = np.sort(np.real(la.eigvals(M_ata)))[::-1]
@@ -127,20 +140,22 @@ for N in target_N_values:
     chi_star = qfi_star / tau_star
     chi_star_list.append(chi_star)
     
-    print(f"{N:<5} | {chi_ata:<20.6f} | {chi_star:<20.6f}")
+    print(f"{N:<5} | {chi_free:<15.6f} | {chi_ata:<18.6f} | {chi_star:<18.6f}")
 
 # --- 5. Graficar el Trade-off ---
-plt.figure(figsize=(9, 6))
+plt.figure(figsize=(10, 6))
 
+plt.plot(target_N_values, chi_free_list, 'd-', color='green', linewidth=2.5, markersize=8, label='Free Spins (Non-interacting)')
 plt.plot(target_N_values, chi_ata_list, 's-', color='orange', linewidth=2.5, markersize=8, label='All-To-All Model')
 plt.plot(target_N_values, chi_star_list, 'o-', color='darkblue', linewidth=2.5, markersize=8, label='Star Model')
 
-plt.title(r'Precision per unit time ($\chi = \mathcal{F}_{eq} / \tau$)', fontsize=15)
-plt.xlabel(r'$N$', fontsize=13)
+plt.title(r'Precision per unit time ($\chi = \mathcal{F}_{eq} / \tau_{eq}$)', fontsize=15)
+plt.xlabel(r'Number of Spins $N$', fontsize=13)
 plt.ylabel(r'$\chi$', fontsize=13)
 
-# Escala logarítmica fundamental para ver la caída exponencial del Star Model
-#plt.yscale('log') 
+# La escala logarítmica ahora hará que la recta de los free spins se vea como una línea de subida lenta 
+# mientras los otros modelos se hunden exponencialmente.
+plt.yscale('log') 
 
 plt.grid(True, which="both", ls="--", alpha=0.5)
 plt.legend(fontsize=12)

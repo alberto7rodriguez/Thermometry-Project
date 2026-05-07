@@ -53,7 +53,7 @@ def calc_chi_BJ(B, J, N, beta=1.0, gamma=1.0):
     lambda_1 = np.abs(evals[-2])
     
     tau = 1.0 / (lambda_1 + 1e-15)
-    return C 
+    return C / tau
 
 # =============================================================================
 # --- 2. CONFIGURACIÓN DEL BARRIDO (GRID) ---
@@ -69,7 +69,6 @@ J_vals = np.linspace(-1.5, 1.5, grid_size)
 B_grid, J_grid = np.meshgrid(B_vals, J_vals)
 chi_grid = np.zeros((grid_size, grid_size))
 
-print("Calculando el mapa de calor de chi(B, J)...")
 
 # Llenar la matriz calculando chi para cada punto (B, J)
 max_chi = -1
@@ -86,7 +85,7 @@ for i in range(grid_size):
             best_B = B_grid[i, j]
             best_J = J_grid[i, j]
 
-print(f"¡Cálculo terminado! Máximo encontrado en B = {best_B:.3f}, J = {best_J:.3f} (Chi = {max_chi:.4f})")
+print(f"Maximum found for B = {best_B:.3f}, J = {best_J:.3f} (Chi = {max_chi:.4f})")
 
 # =============================================================================
 # --- 3. DIBUJAR EL MAPA DE CALOR ---
@@ -96,18 +95,18 @@ plt.figure(figsize=(10, 8))
 # Generar el contorno de color
 contour = plt.contourf(B_grid, J_grid, chi_grid, levels=50, cmap='inferno')
 cbar = plt.colorbar(contour)
-cbar.set_label(r'Precisión a tiempo finito $\chi = \mathcal{C}/\tau$', fontsize=14)
+cbar.set_label(r'$\chi = \mathcal{C}/\tau$', fontsize=14)
 
 # Marcar la línea central de interacciones nulas (J = 0)
-plt.axhline(0, color='white', linestyle='--', alpha=0.6, label='Espines Libres ($J=0$)')
+plt.axhline(0, color='white', linestyle='--', alpha=0.6, label='Non-interacting ($J=0$)')
 
 # Marcar el punto máximo absoluto
-plt.plot(best_B, best_J, 'w*', markersize=15, markeredgecolor='black', label=f'Máximo global')
+plt.plot(best_B, best_J, 'w*', markersize=15, markeredgecolor='black', label=f'Global maximum')
 
 # Etiquetas y estética
-plt.title(f'Mapa de Termometría $\chi(B, J)$ para $N={N_spins}$ espines', fontsize=16)
-plt.xlabel(r'Campo magnético local $B$', fontsize=14)
-plt.ylabel(r'Fuerza de interacción $J$', fontsize=14)
+plt.title(f'$\chi(B, J)$ for $N={N_spins}$ spins', fontsize=16)
+plt.xlabel(r'$B$', fontsize=14)
+plt.ylabel(r'$J$', fontsize=14)
 plt.legend(loc='upper right', fontsize=12)
 plt.tight_layout()
 
