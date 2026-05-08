@@ -7,10 +7,10 @@ from scipy.special import comb
 # =============================================================================
 # --- 1. PARÁMETROS Y LISTAS ---
 # =============================================================================
-N = 3  # Elegimos N=10 (el máximo común de tus listas)
+N = 10  # Elegimos N=10 (el máximo común de tus listas)
 idx = N - 2 # El índice en las listas (N=2 es index 0, N=10 es index 8)
 
-J_values = [0.7112, 0.496, 0.3769, 0.3019, 0.2506, 0.2135, 0.1856, 0.1638, 0.1464]
+J_values = [0.7112, 0.496, 0.3769, 0.3019, 0.2506, 0.2135, 0.1856, 0.1638, 0.1464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 a_values = [-0.711, 0.000, 0.894, 2.015, 3.398, 5.070, 7.052, 9.358, 11.998, 14.977,
             18.297, 21.960, 25.967, 30.318, 35.013, 40.053, 45.438, 51.168, 57.243, 63.664,
             70.431, 77.543, 85.001, 92.805, 100.956, 109.452, 118.294, 127.483, 137.018, 146.899,
@@ -170,10 +170,10 @@ def simulate_fisher_explicit(build_matrix_func, args, t_array, is_star=False):
     L_up, A_up     = get_explicit_equations(M_up, E_up, is_star)
     L_dn, A_dn     = get_explicit_equations(M_dn, E_dn, is_star)
     
-    # Imprimimos las ecuaciones base solo para comprobar que existen y son correctas
+    ''' Imprimimos las ecuaciones base solo para comprobar que existen y son correctas
     if build_matrix_func.__name__ == 'build_ata_matrix':
         print_equations_json(L_base, A_base, "All-To-All Model")
-    
+    '''
     # 3. Evolución en el tiempo usando las fórmulas analíticas
     F_t = np.zeros(len(t_array))
     for i, t in enumerate(t_array):
@@ -192,7 +192,8 @@ def simulate_fisher_explicit(build_matrix_func, args, t_array, is_star=False):
 # =============================================================================
 # --- 5. EJECUCIÓN PRINCIPAL ---
 # =============================================================================
-t_array = np.linspace(0.1, 40, 1000)
+t_max = 800
+t_array = np.linspace(0.1, t_max, t_max*50)
 
 F_free = simulate_fisher_explicit(build_free_matrix, (N, h_free), t_array)
 F_ata  = simulate_fisher_explicit(build_ata_matrix, (N, J_ata), t_array)
@@ -208,7 +209,7 @@ eta_star = F_star[1:] / (t_array[1:] + tau_meas)
 fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 10), sharex=True)
 
 # --- Primer plot (Superior: Información de Fisher) ---
-ax1.plot(t_array, F_free, label='Espines Libres ($J=0$)', color='gray', linestyle='--', lw=2.5)
+ax1.plot(t_array, F_free, label='Free spins ($J=0$)', color='gray', linestyle='--', lw=2.5)
 ax1.plot(t_array, F_ata, label='All-To-All', color='blue', lw=2)
 ax1.plot(t_array, F_star, label='Star Model', color='red', lw=2)
 # Eliminamos set_xlabel de aquí para que no se duplique
@@ -221,7 +222,7 @@ ax2.plot(t_array[1:], eta_free, label='Espines Libres', color='gray', linestyle=
 ax2.plot(t_array[1:], eta_ata, label='All-To-All', color='blue', lw=2)
 ax2.plot(t_array[1:], eta_star, label='Star Model', color='red', lw=2)
 # El xlabel solo se queda en el plot de abajo
-ax2.set_xlabel('Tiempo de medición $t$', fontsize=14)
+ax2.set_xlabel('$t$', fontsize=14)
 ax2.set_ylabel(r'$\eta = \frac{\mathcal{F}(t)}{t}$', fontsize=14)
 ax2.grid(alpha=0.4)
 
