@@ -75,8 +75,8 @@ fig, ax1 = plt.subplots(figsize=(10, 6))
 
 # --- Eje Izquierdo: tau_2 ---
 color1 = 'tab:red'
-ax1.set_xlabel('Número de espines $N$', fontsize=14)
-ax1.set_ylabel(r'Tiempo de formación pretermal $\tau_2$', color=color1, fontsize=14)
+ax1.set_xlabel('$N$', fontsize=14)
+ax1.set_ylabel(r'$\tau_2$', color=color1, fontsize=14)
 line1 = ax1.plot(N_list, tau2_list, 'o-', color=color1, lw=2.5, markersize=8, label=r'$\tau_2$ (Acceso)')
 ax1.tick_params(axis='y', labelcolor=color1)
 
@@ -85,7 +85,7 @@ ax2 = ax1.twinx()
 
 # --- Eje Derecho: Ratio tau_1 / tau_2 ---
 color2 = 'tab:blue'
-ax2.set_ylabel(r'Ratio of accessible time $\tau_1 / \tau_2$ (Log scale)', color=color2, fontsize=14)
+ax2.set_ylabel(r'$\tau_1 / \tau_2$ (Log scale)', color=color2, fontsize=14)
 line2 = ax2.plot(N_list, ratio_list, 's-', color=color2, lw=2.5, markersize=8, label=r'Ratio $\tau_1 / \tau_2$')
 ax2.tick_params(axis='y', labelcolor=color2)
 ax2.set_yscale('log') # Escala logarítmica para ver la divergencia exponencial

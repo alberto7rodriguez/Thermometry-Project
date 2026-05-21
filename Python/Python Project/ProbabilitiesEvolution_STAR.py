@@ -45,7 +45,7 @@ def transition_matrix_star(N, a, b, beta):
     return M
 
 # --- Configuración del Sistema ---
-N = 40
+N = 15
 a = a_values[N-2]
 b = b_values[N-2]
 beta = 1.0

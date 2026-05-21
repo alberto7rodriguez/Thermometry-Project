@@ -7,7 +7,7 @@ from scipy.special import comb
 # =============================================================================
 # --- 1. PARÁMETROS Y LISTAS ---
 # =============================================================================
-N = 10  # Elegimos N=10 (el máximo común de tus listas)
+N = 5  # Elegimos N=10 (el máximo común de tus listas)
 idx = N - 2 # El índice en las listas (N=2 es index 0, N=10 es index 8)
 
 J_values = [0.7112, 0.496, 0.3769, 0.3019, 0.2506, 0.2135, 0.1856, 0.1638, 0.1464,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
@@ -27,7 +27,7 @@ a_star = a_values[idx]
 b_star = b_values[idx]
 
 # Espines libres óptimos (B ~ 1.25 maximiza C para N espines a T=1)
-h_free = 1.25 
+h_free = -0.961
 
 T_val = 1.0
 dT = 0.0008
@@ -192,17 +192,17 @@ def simulate_fisher_explicit(build_matrix_func, args, t_array, is_star=False):
 # =============================================================================
 # --- 5. EJECUCIÓN PRINCIPAL ---
 # =============================================================================
-t_max = 800
-t_array = np.linspace(0.1, t_max, t_max*50)
+t_max = 10
+t_array = np.linspace(0.1, t_max, 1000)
 
 F_free = simulate_fisher_explicit(build_free_matrix, (N, h_free), t_array)
 F_ata  = simulate_fisher_explicit(build_ata_matrix, (N, J_ata), t_array)
 F_star = simulate_fisher_explicit(build_star_matrix, (N, a_star, b_star), t_array, is_star=True)
 
 tau_meas = 0 
-eta_free = F_free[1:] / (t_array[1:] + tau_meas)
-eta_ata  = F_ata[1:]  / (t_array[1:] + tau_meas)
-eta_star = F_star[1:] / (t_array[1:] + tau_meas)
+eta_free = F_free[1:] / (t_array[1:] )
+eta_ata  = F_ata[1:]  / (t_array[1:] )
+eta_star = F_star[1:] / (t_array[1:] )
 
 # --- PLOT ---
 # Cambiamos a 2 filas, 1 columna y activamos sharex=True
@@ -227,8 +227,10 @@ ax2.set_ylabel(r'$\eta = \frac{\mathcal{F}(t)}{t}$', fontsize=14)
 ax2.grid(alpha=0.4)
 
 # Aplicamos la escala personalizada al eje compartido (usando ax2)
-ax2.set_xscale('function', functions=(lambda x: np.power(x, 0.5), lambda x: np.power(x, 2)))
+#ax2.set_xscale('function', functions=(lambda x: np.power(x, 0.5), lambda x: np.power(x, 2)))
 
 # Ajuste fino para evitar que los títulos o etiquetas se solapen
 plt.tight_layout()
 plt.show()
+
+print(max(eta_free))
