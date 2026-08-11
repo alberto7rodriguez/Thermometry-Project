@@ -7,7 +7,8 @@ import time
 # =============================================================================
 # --- 1. PARÁMETROS GLOBALES ---
 # =============================================================================
-N = 4         # ¡Ahora puedes subir esto a 10, 20 o 50 sin problema!
+N_values = [2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30]
+
 T_val = 1.0
 dT = 0.001
 gamma = 1.0
@@ -74,7 +75,7 @@ def objective_ata(params):
     M_up, _   = build_ata_macro_matrix(B, J, T_val + dT)
     M_dn, _   = build_ata_macro_matrix(B, J, T_val - dT)
     
-    # ESTADO INICIAL: T = Infinito (Distribución Binomial en macroestados)
+    ''' ESTADO INICIAL: T = Infinito (Distribución Binomial en macroestados)
     P0 = np.array([comb(N, n) for n in range(N + 1)])
     P0 /= np.sum(P0)
     '''
@@ -82,7 +83,7 @@ def objective_ata(params):
     # ESTADO INICIAL: Ground State
     P0 = np.zeros(N + 1)
     P0[-1] = 1.0
-    '''
+    
 
     
     eta_max = 0.0
@@ -102,24 +103,22 @@ def objective_ata(params):
             
     return -eta_max # Negativo para minimizar en SciPy
 
-# =============================================================================
-# --- 4. EJECUCIÓN DE LA OPTIMIZACIÓN ---
-# =============================================================================
-print(f"Iniciando optimización del modelo All-To-All para N={N}...")
-start_time = time.time()
+for n in N_values:
+    N = n
+    # =============================================================================
+    # --- 4. EJECUCIÓN DE LA OPTIMIZACIÓN ---
+    # =============================================================================
+    print(f"Iniciando optimización del modelo All-To-All para N={N}...")
 
-# Al ser solo 2D, el optimizador global volará. Usamos una población más alta por seguridad.
-result = differential_evolution(objective_ata, bounds, 
-                                strategy='best1bin', 
-                                popsize=20, maxiter=100, tol=1e-6, disp=False)
+    # Al ser solo 2D, el optimizador global volará. Usamos una población más alta por seguridad.
+    result = differential_evolution(objective_ata, bounds, 
+                                    strategy='best1bin', 
+                                    popsize=20, maxiter=100, tol=1e-6, disp=False)
 
-end_time = time.time()
+    B_opt, J_opt = result.x
+    eta_pico = -result.fun
 
-B_opt, J_opt = result.x
-eta_pico = -result.fun
-
-print("\n--- ¡OPTIMIZACIÓN COMPLETADA! ---")
-print(f"Tiempo de ejecución: {end_time - start_time:.2f} segundos")
-print(f"Pico Máximo encontrado: eta_max = {eta_pico:.4f}")
-print(f"Campo B óptimo: {B_opt:.4f}")
-print(f"Acoplamiento J óptimo: {J_opt:.4f}")
+    print("\n--- ¡OPTIMIZACIÓN COMPLETADA! ---")
+    print(f"eta_max = {eta_pico:.4f}")
+    print(f"B óptimo: {B_opt:.4f} y J óptimo: {J_opt:.4f}")
+    print("------------------------------------------------------")

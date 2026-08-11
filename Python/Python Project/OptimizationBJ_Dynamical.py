@@ -84,7 +84,8 @@ def objective_function(params):
     
     # Condición inicial (Ej: T=infinito, todos los estados equiprobables)
     dim = 2**N
-    P0 = np.ones(dim) / dim
+    P0 = np.zeros(dim)
+    P0[-1] = 1
     
     # Evaluar la dinámica en la malla de tiempo
     eta_max = 0.0
